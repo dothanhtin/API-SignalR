@@ -1,0 +1,330 @@
+﻿@*<div class="jumbotron">
+        <h1>ASP.NET</h1>
+        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS, and JavaScript.</p>
+        <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Getting started</h2>
+            <p>ASP.NET Web API is a framework that makes it easy to build HTTP services that reach
+            a broad range of clients, including browsers and mobile devices. ASP.NET Web API
+            is an ideal platform for building RESTful applications on the .NET Framework.</p>
+            <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301870">Learn more &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+            <h2>Get more libraries</h2>
+            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
+            <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301871">Learn more &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+            <h2>Web Hosting</h2>
+            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
+            <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301872">Learn more &raquo;</a></p>
+        </div>
+    </div>*@
+@*<script src="~/Scripts/bootstrap.min.js"></script>*@
+<head>
+    <link href="~/Kendo/Kendo2017/styles/kendo.rtl.min.css" rel="stylesheet" />
+    <link href="~/Kendo/Kendo2017/styles/kendo.silver.min.css" rel="stylesheet" />
+    <link href="~/Kendo/Kendo2017/styles/kendo.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Kendo/Kendo2017/styles/kendo.common.min.css" rel="stylesheet" />
+    <style>
+        .lbl {
+            margin:10px 20px;
+        }
+
+        .k-textbox {
+            margin:0 20px;
+            width:100%;
+        }
+    </style>
+</head>
+
+<div class="row" style="margin:20px">
+    <div id="grid">
+
+    </div>
+    <div>
+        <button id="btn_add" class="btn btn-default">Add</button>
+        <button id="btn_edit" class="btn btn-success">Edit</button>
+        <button id="btn_del" class="btn btn-danger">Delete</button>
+    </div>
+
+    @*<input id="testInput" />
+        <input id="testInput2" />*@
+</div>
+<div id="dialog">
+    <div class="col-md-11">
+        <div class="row">
+            <label class="lbl">Tên</label><br />
+            <input class="k-textbox" id="ten" style="width:100%" /><br />
+        </div>
+        <div class="row">
+            <label class="lbl">Mô tả</label><br />
+            <input class="k-textbox" id="des" style="width:100%" /><br />
+        </div>
+        <br />
+        <div class="row" style="text-align:center">
+            <button class="btn btn-primary" id="btn_save">Save</button>
+        </div>
+    </div>
+</div>
+@section scripts{
+    @*<script src="~/Scripts/tomaidiot.js"></script>
+        <script src="~/Scripts/toastr.min.js"></script>
+        <script src="~/Scripts/common.js"></script>*@
+
+    <script src="~/Scripts/jquery-3.3.1.min.js"></script>
+
+    @*<script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>*@
+    <script src="~/Kendo/Kendo2017/js/jquery.min.js"></script>
+    <script src="~/Kendo/Kendo2017/js/kendo.all.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+    <script src="~/Scripts/notify.min.js"></script>
+
+    <script src="~/signalr/hubs"></script>
+    <script>
+        var chooseButton = 0;
+        var ID = 0;
+        var dialog = $("#dialog").kendoWindow({
+            draggable: false,
+            //position: {
+            //    top: 0,
+            //    left: 300
+            //},
+            modal: true,
+            resizable: false,
+            visible: false,
+            width: "600",
+            height: "300",
+            actions: ["Close"]
+        }).data("kendoWindow");
+
+        tk_grid = $('#grid').kendoGrid({
+            dataSource: {
+
+                pageSize: 10,
+                transport: {
+                    read: {
+                        url: '/api/Tests/getAll',
+                        dataType: "json"
+                    }
+                }
+            },
+            pageable: true,
+            selectable: "multiple row",
+            scrollabel: false,
+            persistSelection: true,
+            groupable: false,
+            columns: [
+                {
+                    field: "ID",
+                    title: "ID",
+                    headerAttributes: {
+                        style: "font-weight:bold;text-align:center;"
+                    },
+                    attributes: {
+                        "class": "table-cell",
+                        style: "text-align: center;"
+                    }
+                },
+                {
+                    field: "Name",
+                    title: "Name",
+                    headerAttributes: {
+                        style: "font-weight:bold;text-align:center;"
+                    },
+                    attributes: {
+                        "class": "table-cell",
+                        style: "text-align: center;"
+                    }
+                },
+                {
+                    field: "Description",
+                    title: "Description",
+                    headerAttributes: {
+                        style: "font-weight:bold;text-align:center;"
+                    },
+                    attributes: {
+                        "class": "table-cell",
+                        style: "text-align: center;"
+                    }
+                }
+
+            ]
+        }).data("kendoGrid");
+
+        //#region button
+        var data = {
+            'name': "abc",
+            'des': "cba"
+        };
+
+        $('#btn_add').click(function () {
+            clearForm();
+            dialog.open().center();
+            chooseButton = 0;
+
+        });
+
+        $('#btn_edit').click(function () {
+            var selectedItem = tk_grid.dataItem(tk_grid.select());
+            if (selectedItem == null) {
+                $("#grid").notify("Hãy chọn 1 tin tức để xem...", { position: "bottom right", className: "info"} );
+            }
+            else {
+                dialog.open().center();
+                $('#ten').val(selectedItem.Name);
+                $('#des').val(selectedItem.Description);
+                ID = Number(selectedItem.ID);
+                chooseButton = 1;
+            }
+
+        });
+
+        $('#btn_save').click(function () {
+            //Add
+            if (chooseButton == 0) {
+                data = { 'name': $('#ten').val(), 'des': $('#des').val() }
+                $.ajax({
+                    type: "POST",
+                    url: '/api/Tests/add1Record',
+                    //data: JSON.stringify({
+                    //    'name': "abc",
+                    //    'des': "cba"
+                    //    //data
+                    //}),
+                    data: JSON.stringify(data),
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (data) {
+                        //alert(data);
+                        if (data == "OK") {
+                            tk_grid.dataSource.read();
+                        }
+                        //clearForm();
+                        dialog.close();
+                    },
+                    error: function (response) {
+                        //checkSessionExpire(response, returnPage);
+                        alert(response);
+                        //location.reload();
+                    }
+                });
+            }
+            else if (chooseButton == 1) {
+                data = { 'ID': ID, 'name': $('#ten').val(), 'des': $('#des').val() }
+                $.ajax({
+                    type: "POST",
+                    url: '/api/Tests/UpdateRecord',
+                    //data: JSON.stringify({
+                    //    'name': "abc",
+                    //    'des': "cba"
+                    //    //data
+                    //}),
+                    data: JSON.stringify(data),
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (data) {
+                        //alert(data);
+                        if (data == "OK")
+                            tk_grid.dataSource.read();
+                        //clearForm();
+                        dialog.close();
+                    },
+                    error: function (response) {
+                        //checkSessionExpire(response, returnPage);
+                        alert(response);
+                        //location.reload();
+                    }
+                });
+            }
+        });
+
+        //var idval = $('#testInput').val();
+
+        $('#btn_del').click(function () {
+            var selectedItem = tk_grid.dataItem(tk_grid.select());
+            if (selectedItem == null) {
+                $("#grid").notify("Hãy chọn 1 tin tức để xem...", { position: "bottom right", className: "info" });
+            }
+            else {
+                var Url = '/api/Tests/delete1Record/' + selectedItem.ID;
+                $.ajax({
+                    type: "POST",
+                    url: Url,
+                    //url: '/api/Tests/delete1Record/13',
+                    //data: JSON.stringify({'id':"13"}),
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (data) {
+                        //alert(data);
+                        tk_grid.dataSource.read();
+
+                    },
+                    error: function (response) {
+                        //checkSessionExpire(response, returnPage);
+                        //alert(response);
+                        //location.reload();
+                    }
+                });
+            }
+
+        });
+
+        //function
+        //clear form
+        function clearForm() {
+            $('#ten').val('');
+            $('#des').val('');
+        }
+        //#endregion
+
+        var hubURL = "http://localhost:65292/SignalR/hubs";
+        //$.hubConnection()
+        //var testHubProxy = $.connection.myHub1;
+        var connection = $.hubConnection(hubURL, { useDefaultPath: false });
+        var testHubProxy = $.connection.hub.createHubProxy('MyHubTest1');
+        testHubProxy.client.readData = function (s) {
+            //defined method (respone to client from server)
+            //console.log(s);
+            tk_grid.dataSource.read();
+            console.log("Grid load OK!");
+            $("#grid").notify("Cập nhật thành công!", { position: "bottom right", className: "success" });
+            //$('#testInput2').val(s);
+        }
+
+        $.connection.hub.start().done(function () {
+            //$("#testClick").click(function () {
+            //    //call method in server
+            //    testHubProxy.server.readAll("OK");
+            //    //alert("OK");
+            //    //alert($('#testInput').val());
+            //});
+            //testHubProxy.server.readAll("OK");
+            //$('#btn_add').click(function () {
+            //    $.ajax({
+            //        type: "POST",
+            //        url: '/TestDemos/addData',
+            //        data: JSON.stringify({
+            //            'name': $('#testInput').val(),
+            //            'des': $('#testInput2').val()
+            //        }),
+            //        dataType: "json",
+            //        contentType: "application/json;charset=utf-8",
+            //        success: function (data) {
+            //            //alert(data);
+            //            if (data = "1")
+            //                tk_grid.dataSource.read();
+            //        },
+            //        error: function (response) {
+            //            //checkSessionExpire(response, returnPage);
+            //            alert(response);
+            //            location.reload();
+            //        }
+            //    });
+            //});
+        })
+    </script>
+}
+
