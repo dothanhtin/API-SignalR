@@ -82,8 +82,9 @@
     <script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
     <script src="~/Scripts/notify.min.js"></script>
 
-    <script src="~/signalr/hubs"></script>
+    @*<script src="~/signalr/hubs"></script>*@
     <script>
+        var link = 'http://localhost:65292';
         var chooseButton = 0;
         var ID = 0;
         var dialog = $("#dialog").kendoWindow({
@@ -106,7 +107,7 @@
                 pageSize: 10,
                 transport: {
                     read: {
-                        url: '/api/Tests/getAll',
+                        url: link+'/api/Tests/getAll',
                         dataType: "json"
                     }
                 }
@@ -188,7 +189,7 @@
                 data = { 'name': $('#ten').val(), 'des': $('#des').val() }
                 $.ajax({
                     type: "POST",
-                    url: '/api/Tests/add1Record',
+                    url: link+'/api/Tests/add1Record',
                     //data: JSON.stringify({
                     //    'name': "abc",
                     //    'des': "cba"
@@ -216,7 +217,7 @@
                 data = { 'ID': ID, 'name': $('#ten').val(), 'des': $('#des').val() }
                 $.ajax({
                     type: "POST",
-                    url: '/api/Tests/UpdateRecord',
+                    url: link+'/api/Tests/UpdateRecord',
                     //data: JSON.stringify({
                     //    'name': "abc",
                     //    'des': "cba"
@@ -249,7 +250,7 @@
                 $("#grid").notify("Hãy chọn 1 tin tức để xem...", { position: "bottom right", className: "info" });
             }
             else {
-                var Url = '/api/Tests/delete1Record/' + selectedItem.ID;
+                var Url = link+'/api/Tests/delete1Record/' + selectedItem.ID;
                 $.ajax({
                     type: "POST",
                     url: Url,
@@ -280,50 +281,22 @@
         }
         //#endregion
 
-        var hubURL = "http://localhost:65292/SignalR/hubs";
+        var hubURL =link+ "/SignalR/hubs";
         //$.hubConnection()
         //var testHubProxy = $.connection.myHub1;
         var connection = $.hubConnection(hubURL, { useDefaultPath: false });
-        var testHubProxy = $.connection.hub.createHubProxy('MyHubTest1');
-        testHubProxy.client.readData = function (s) {
+        var testHubProxy = connection.createHubProxy('MyHubTest1');
+        var hubStart = connection.start({ transport: 'longPolling', json: true });
+        testHubProxy.on("readData", function (s) {
             //defined method (respone to client from server)
             //console.log(s);
             tk_grid.dataSource.read();
             console.log("Grid load OK!");
             $("#grid").notify("Cập nhật thành công!", { position: "bottom right", className: "success" });
             //$('#testInput2').val(s);
-        }
-
-        $.connection.hub.start().done(function () {
-            //$("#testClick").click(function () {
-            //    //call method in server
-            //    testHubProxy.server.readAll("OK");
-            //    //alert("OK");
-            //    //alert($('#testInput').val());
-            //});
-            //testHubProxy.server.readAll("OK");
-            //$('#btn_add').click(function () {
-            //    $.ajax({
-            //        type: "POST",
-            //        url: '/TestDemos/addData',
-            //        data: JSON.stringify({
-            //            'name': $('#testInput').val(),
-            //            'des': $('#testInput2').val()
-            //        }),
-            //        dataType: "json",
-            //        contentType: "application/json;charset=utf-8",
-            //        success: function (data) {
-            //            //alert(data);
-            //            if (data = "1")
-            //                tk_grid.dataSource.read();
-            //        },
-            //        error: function (response) {
-            //            //checkSessionExpire(response, returnPage);
-            //            alert(response);
-            //            location.reload();
-            //        }
-            //    });
-            //});
+        });
+        connection.start().done(function () {
+            //testHubProxy.invoke("ReadAllNew");
         })
     </script>
 }
