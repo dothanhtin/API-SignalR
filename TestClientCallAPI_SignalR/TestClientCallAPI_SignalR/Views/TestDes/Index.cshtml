@@ -57,8 +57,9 @@
     <script src="~/Kendo/Kendo2017/js/kendo.all.min.js"></script>
     <script src="~/Scripts/notify.min.js"></script>
     <script src="~/Scripts/jquery.signalR-2.4.0.min.js"></script>
-    <script src="http://10.70.122.28:9093/signalr/hubs"></script>
+    @*<script src="http://10.70.122.28:9093/signalr/hubs"></script>*@
     <script>
+        var link = 'http://localhost:65292/';
         var chooseButton = 0;
         var ID = 0;
         var dialog = $("#dialog").kendoWindow({
@@ -81,7 +82,7 @@
                 pageSize: 10,
                 transport: {
                     read: {
-                        url: 'http://10.70.122.28:9093/api/Tests/getAll',
+                        url: link+ '/api/Tests/getAll',
                         dataType: "json"
                     }
                 }
@@ -158,7 +159,7 @@
                 $.ajax({
                     type: "POST",
                     //url: '/api/Tests/add1Record',
-                    url: "http://10.70.122.28:9093/api/Tests/add1Record",
+                    url: link+ "/api/Tests/add1Record",
                     data: JSON.stringify(data),
                     dataType: "json",
                     contentType: "application/json;charset=utf-8",
@@ -181,7 +182,7 @@
                 data = { 'ID': ID, 'name': $('#ten').val(), 'des': $('#des').val() }
                 $.ajax({
                     type: "POST",
-                    url: 'http://10.70.122.28:9093/api/Tests/UpdateRecord',
+                    url: link+ '/api/Tests/UpdateRecord',
                     //data: JSON.stringify({
                     //    'name': "abc",
                     //    'des': "cba"
@@ -214,7 +215,7 @@
                 $("#grid").notify("Hãy chọn 1 tin tức để xem...", { position: "bottom right", className: "info" });
             }
             else {
-                var Url = 'http://10.70.122.28:9093/api/Tests/delete1Record/' + selectedItem.ID;
+                var Url = link+ '/api/Tests/delete1Record/' + selectedItem.ID;
                 $.ajax({
                     type: "POST",
                     url: Url,
@@ -244,12 +245,13 @@
             $('#des').val('');
         }
 
-        var hubURL = "http://10.70.122.28:9093/SignalR/hubs";
+        var hubURL = link+"/SignalR/hubs";
         //$.hubConnection()
         //var testHubProxy = $.connection.myHub1;
         var connection = $.hubConnection(hubURL, { useDefaultPath: false });
         //var testHubProxy = $.connection.hub.createHubProxy('MyHubTest1');
         var testHubProxy = connection.createHubProxy('MyHubTest1');
+        var hubStart = connection.start({ transport: 'longPolling', json: true });
         //testHubProxy.client.readData = function (s) {
         //    //defined method (respone to client from server)
         //    //console.log(s);

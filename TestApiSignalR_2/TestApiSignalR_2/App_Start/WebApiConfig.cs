@@ -9,6 +9,8 @@ namespace TestApiSignalR_2
     {
         public static void Register(HttpConfiguration config)
         {
+            //Enable Cors
+            config.EnableCors();
             // Web API configuration and services
 
             // Web API routes

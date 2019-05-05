@@ -7,10 +7,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using TestApiSignalR_2.Models;
 
 namespace TestApiSignalR_2.Controllers
 {
+    [EnableCors(origins: "*", headers: "*", methods: "*", exposedHeaders: "X-My-Header")]
     public class TestsController : ApiController
     {
         //private readonly IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<MyHubTest1>();
